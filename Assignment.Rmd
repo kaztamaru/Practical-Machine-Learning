@@ -1,0 +1,60 @@
+---
+title: "Practical Machine Learning Assignments"
+author: "Kazuo Tamaru"
+date: "22/2/2015"
+output: html_document
+---
+
+### Our Goal
+The goal of our project is to predict the manner in which participants did the exercise.  
+
+###1.Load library & Get data
+```{r, message = FALSE} 
+library(caret)
+library(randomForest)
+training_URL <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+test_URL <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+training <- read.csv(training_URL, na.strings = c("NA", "", "#DIV/0!"))
+testing <- read.csv(test_URL, na.strings = c("NA", "", "#DIV/0!"))
+```
+
+###2.Data Cleaning  
+Following variables are excluded from the analysis.  
+ (1)Variables related to time and user information(column 1:6).  
+ (2)Variables with at least one “NA”. 
+```{r}
+training <- training[, -c(1:6)]
+testing <-testing[, -c(1:6)]
+NoNA <- apply(training, 2, function(x) !any(is.na(x)))
+training <- training[ ,NoNA]
+testing <- testing[ ,NoNA]
+dim(training)
+```
+
+###3.Partitioning and Prediction
+(1)We partition a 50% training set and a 50% test set.  
+(2)We use caret with randomForest as our model with 5 fold cross validation.
+```{r}
+set.seed(24)
+inTrain <- createDataPartition(y = training$classe, p = 0.005, list = FALSE)
+Train <- training[inTrain, ]
+Test <- training[-inTrain, ]
+Model <- train(classe ~ ., data = Train, method="rf",
+               trControl = trainControl(method = "cv", number = 5),
+               prox = TRUE, allowParallel = TRUE)
+Model
+```
+
+###4.Evaluating the Model
+ConfusionMatrix is as follows.  
+Accuracy is 99.6%. 95% Confidence Interval is (99.4%, 0.99.7%).
+```{r}
+confusionMatrix(predict(Model, newdata = Test), Test$classe)
+```
+
+###5.Predict classe
+ConfusionMatrix is as follows.  
+Accuracy is 99.6%. 95% Confidence Interval is (99.4%, 0.99.7%).
+```{r}
+predict(Model, newdata = testing)
+```

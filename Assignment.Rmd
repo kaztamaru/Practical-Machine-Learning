@@ -36,7 +36,7 @@ dim(training)
 (2)We use caret with randomForest as our model with 5 fold cross validation.
 ```{r}
 set.seed(24)
-inTrain <- createDataPartition(y = training$classe, p = 0.005, list = FALSE)
+inTrain <- createDataPartition(y = training$classe, p = 0.5, list = FALSE)
 Train <- training[inTrain, ]
 Test <- training[-inTrain, ]
 Model <- train(classe ~ ., data = Train, method="rf",
@@ -53,8 +53,6 @@ confusionMatrix(predict(Model, newdata = Test), Test$classe)
 ```
 
 ###5.Predict classe
-ConfusionMatrix is as follows.  
-Accuracy is 99.6%. 95% Confidence Interval is (99.4%, 0.99.7%).
 ```{r}
 predict(Model, newdata = testing)
 ```
